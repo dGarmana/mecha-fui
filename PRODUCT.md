@@ -1,0 +1,108 @@
+# Product
+
+<!-- impeccable:product-schema 1 -->
+
+## Platform
+
+linux-desktop
+
+<!-- Not one of web/ios/android/adaptive: this is a Wayland desktop rice (Hyprland compositor + QML shell), not a web or mobile app. -->
+
+## Stack
+
+Delegated to Claude; the user confirmed each recommendation:
+
+- **Compositor:** Hyprland 0.57.x (already installed), configured with Lua (`hyprland.lua` + `config/*.lua` modules, matching the CachyOS preset layout).
+- **Shell:** a custom **Quickshell** (QML/QtQuick) shell written in this repo, replacing the CachyOS Noctalia preset. Chosen because a mecha HUD needs angled panels, gauges and readouts, and Waybar/CSS toolsets can't draw those shapes well. Quickshell is not installed yet; it's available as `cachyos-extra-znver4/quickshell` (0.3.2). Noctalia 5.x is a native C++ shell and does not run on Quickshell.
+- **Terminal:** Kitty (installed; Alacritty also present).
+- **Shell (CLI):** Fish.
+- **Repo model:** this folder (`~/Projects/mecha-fui`) is a git dotfiles repo pushed to GitHub. `~/.config` itself is never the repo, because it holds browser profiles, tokens and app state (`Claude/`, `google-chrome/`, `mozilla/`, `dconf/`) that must not be pushed.
+- **Symlinks:** GNU Stow. Each app is a Stow package that mirrors its home path (`hypr/.config/hypr/…`, `quickshell/.config/quickshell/…`, `kitty/.config/kitty/…`). `stow <pkg>` links it in and `stow -D <pkg>` removes it.
+- **Concept sketches:** Google Stitch, used only to explore the look as full 1920×1200 desktop mockups. Picked screenshots go in `refs/stitch/`. Stitch's HTML/CSS/Figma exports are never used as code, because the shell is QML.
+
+## Users
+
+One user: the owner, ricing their own laptop for daily use. It is a personal project. There is no outside audience to design for, and their taste is the only measure of success.
+
+## Product Purpose
+
+Turn a stock CachyOS Hyprland + Noctalia desktop into a coherent mecha-cockpit FUI (fictional user interface): the desktop should feel like piloting a machine, and still work as a daily driver. Success: it looks like one designed system across every surface, and it's still fast and reliable for everyday work.
+
+## Positioning
+
+A single, hand-built mecha HUD across the whole desktop: shell, launcher, notifications, lock screen, terminal and app theming. Not a theme pack stitched onto the stock Noctalia layout.
+
+## Operating Context
+
+- Hardware: HP EliteBook 845 14" G10 (AMD Ryzen 7040 series), one internal display `eDP-1` at 1920×1200 @ 60 Hz, scale 1. Laptop use, so battery, brightness, Wi-Fi and power state matter.
+- OS: CachyOS (Arch-based), session managed by uwsm, xdg-desktop-portal-hyprland.
+- Current state being replaced: the `cachyos-hypr-noctalia` preset (Noctalia 5.4 shell, config at `~/.config/noctalia/config.toml`).
+- Daily apps seen in config: Kitty, Alacritty, Dolphin (Qt/KDE), Google Chrome, Firefox, btop, micro, fastfetch.
+
+## Capabilities and Constraints
+
+In scope (all confirmed):
+
+1. **Bar / HUD frame:** workspaces, clock, battery, network, CPU/temp readouts.
+2. **Launcher + notifications:** app launcher, notification popups, volume/brightness OSD.
+3. **Lock screen + login:** hyprlock and the boot/login look.
+4. **Terminal, GTK/Qt, wallpaper:** Kitty theme, GTK 3/4 and Qt5/Qt6 app theming (qt5ct/qt6ct present), Hyprland borders/animations/decorations, wallpaper.
+
+Constraints:
+
+- It's a daily driver, so the shell must stay responsive and stable. Decoration never blocks basic functions (launching apps, seeing battery, locking).
+- Before the custom shell replaces Noctalia, there must be a working fallback (keep the preset installable, keep a keybind or TTY path back to it).
+- Open decisions are tracked in `## Decisions` below.
+
+## Evidence on Hand
+
+- Existing configs to migrate from: `~/.config/hypr/` (Lua modules), `~/.config/noctalia/config.toml`, `~/.config/kitty/`, `~/.config/fish/`.
+- Installed fonts include Nerd Font builds of FantasqueSans Mono and Meslo LG. No mecha/display typefaces are installed yet.
+- No wallpapers, logos or artwork assets are provided yet; future work must not assume any.
+
+## Product Principles
+
+1. **One cockpit, not parts.** Every surface (bar, launcher, lock, terminal, apps) reads as the same machine.
+2. **Readable before cinematic.** HUD styling serves real system data at a glance; fake readouts and filler telemetry don't belong.
+3. **Daily driver first.** Performance, battery life and reliability outrank effects.
+4. **Reversible.** Everything lives in git and symlinks, with a working way back to the stock setup.
+
+## Milestones
+
+Each milestone ends in a usable desktop and a commit.
+
+- **M0 — Context** ✅ PRODUCT.md written.
+- **M1 — Repo foundation.** `git init`, `.gitignore`, GitHub remote, install `stow`. Copy the current `hypr`, `kitty` and `fish` configs into Stow packages and stow them, so nothing changes visually yet. Snapshot the Noctalia config as the fallback. *Done when:* the desktop runs from the repo's symlinks and the repo is pushed.
+- **M2 — Concept sketches.** Generate HUD mockups in Google Stitch (desktop with bar, launcher overlay, notification, lock screen) and save the picks to `refs/stitch/`. *Done when:* 2–4 reference images are chosen.
+- **M3 — Visual direction.** Turn the references into DESIGN.md: palette, typefaces (install any mecha/display fonts), panel geometry, motion, data-readout rules. *Done when:* DESIGN.md is approved.
+- **M4 — Shell core (bar / HUD frame).** Install Quickshell and build the bar: workspaces, clock, battery, network, CPU/temp. Run it alongside Noctalia behind a toggle keybind. *Done when:* it replaces Noctalia's bar for a full day of use.
+- **M5 — Launcher, notifications, OSD.** Add an app launcher, notification server and volume/brightness popups in Quickshell, then retire Noctalia from autostart (it stays installed as a fallback). *Done when:* Noctalia is no longer needed day to day.
+- **M6 — Lock screen + login.** Theme hyprlock, decide on the login manager and theme it, and theme the boot splash if wanted. *Done when:* locking and logging in match the HUD.
+- **M7 — Apps and surroundings.** Kitty theme, GTK 3/4 and Qt5/6 (qt5ct/qt6ct) theming, Hyprland borders, decorations and animations, wallpaper. *Done when:* everyday apps read as the same cockpit.
+- **M8 — Polish + hardening.** Performance and battery check, multi-monitor/hotplug behavior, fallback documentation, README and screenshots for GitHub.
+
+## Decisions
+
+Confirmed:
+
+| Decision | Choice | Why |
+|---|---|---|
+| Shell | Custom Quickshell (QML) | Only option that can draw angled HUD panels and gauges freely |
+| Repo location | `~/Projects/mecha-fui`, not `~/.config` | Keeps secrets and app state out of GitHub |
+| Symlinks | GNU Stow | Simple, reversible, per-app packages |
+| Sketching | Google Stitch, as images only | Fast exploration; exports don't translate to QML |
+| Scope | Bar, launcher/notifications, lock/login, apps/terminal/wallpaper | Whole desktop as one cockpit |
+| Terminal | Kitty | Already installed and configured |
+
+Open (decide at the milestone listed):
+
+- **GitHub repo visibility** (public or private) and name — M1.
+- **Visual direction:** palette, typefaces, geometry, motion — M3, from the Stitch references.
+- **Launcher approach:** fully custom Quickshell launcher or an existing launcher themed to match — M5.
+- **Login manager:** e.g. SDDM (themeable with QML), greetd + tuigreet, or keep the current one — M6.
+- **Wallpaper:** static image or animated (e.g. via `swww` or `mpvpaper`), considering battery cost — M7.
+- **Keybinds:** which CachyOS preset binds to keep — M1 when migrating, refined later.
+
+## Next
+
+**M1 — Repo foundation.** Set up git and Stow, move the current configs into the repo with no visual changes, and push to GitHub. It's safe to do this before the look is decided, and every later step builds on it. M2 (Stitch sketches) can run in parallel since it doesn't touch the system.

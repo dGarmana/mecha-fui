@@ -1,0 +1,8 @@
+# fish universal variables: machine state, rewritten by fish
+fish/.config/fish/fish_variables
+# editor / OS noise
+*.swp
+*~
+.DS_Store
+# impeccable runtime dirs (config.json, surfaces/, design.json stay tracked)
+.impeccable/config.local.json
